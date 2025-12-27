@@ -155,7 +155,7 @@ async function batchVote(engine: webllm.MLCEngineInterface, bill: Bill, members:
   const PARALLEL_LIMIT = parallelLimit;
 
   for (let i = 0; i < members.length; i += PARALLEL_LIMIT) {
-    if (onProgress) onProgress(`VOTING PROGRESS: ${i}/${members.length} MEMBERS DECIDED...`);
+
 
     const chunk = members.slice(i, i + PARALLEL_LIMIT);
     const promises = chunk.map(async (m, idx) => {
@@ -197,9 +197,9 @@ Output: Just one word: YES or NO.
         const txt = reply.choices[0].message.content?.toLowerCase() || "";
         let vote: "yes" | "no" | "abstain" = "abstain";
 
-        if (txt.includes("yes")) vote = "yes";
-        else if (txt.includes("no")) vote = "no";
-        else vote = "abstain";
+        if (txt.includes("yes") || txt.includes("aye") || txt.includes("support")) vote = "yes";
+        else if (txt.includes("no") || txt.includes("nay") || txt.includes("oppose")) vote = "no";
+        else vote = "abstain"; // Fallback for confused/error/empty
 
         // Debug Log
         // console.log(`[Vote] ${m.member_id} (${m.district.lean}): ${vote} based on ${txt}`);
@@ -219,6 +219,16 @@ Output: Just one word: YES or NO.
       if (res.vote === "yes") yes++;
       else if (res.vote === "no") no++;
       else abstain++;
+    }
+
+    // Stability Check
+    const totalSoFar = yes + no + abstain;
+    if (onProgress) {
+      let msg = `VOTING PROGRESS: ${Math.min(i + PARALLEL_LIMIT, members.length)}/${members.length} MEMBERS DECIDED...`;
+      if (totalSoFar > 10 && (abstain / totalSoFar) > 0.2) {
+        msg += ` (WARNING: High Failure Rate. Reduce Parallel Limit!)`;
+      }
+      onProgress(msg);
     }
 
     // Update UI

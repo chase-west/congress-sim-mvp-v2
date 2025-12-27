@@ -636,6 +636,7 @@ export default function App() {
                                           <>
                                             <span className="text-green-500">YES: {vote.yes}</span>
                                             <span className="text-red-500">NO: {vote.no}</span>
+                                            {vote.abstain > 0 && <span className="text-gray-500">FAILED/ABS: {vote.abstain}</span>}
                                           </>
                                         );
                                      } else {
