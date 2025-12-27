@@ -26,7 +26,13 @@ from .state import (
 from .sim.engine import run_simulation
 from .data_pipeline.census_acs import fetch_acs5_congressional_districts, acs_rows_to_districts
 from .data_pipeline.synthetic import split_districts
-from .data_pipeline.congressgov import fetch_bill_json, bill_json_to_bill_obj, fetch_random_bill
+from .data_pipeline.congressgov import (
+    fetch_bill_json, 
+    bill_json_to_bill_obj, 
+    fetch_random_bill,
+    fetch_recent_bills,
+    fetch_bill_summaries
+)
 from .data_pipeline.elections import parse_house_csv_two_party, apply_lean
 
 APP_ORIGIN = os.getenv("APP_ORIGIN", "http://localhost:5173")
@@ -200,6 +206,60 @@ async def get_random_bill():
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to fetch random bill: {e}")
     
+
+
+@app.get("/congress/recent")
+async def get_recent_bills(limit: int = 20, offset: int = 0):
+    api_key = os.getenv("CONGRESS_GOV_API_KEY") or os.getenv("CONGRESS_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="Server missing CONGRESS_GOV_API_KEY."
+        )
+    
+    base = os.getenv("CONGRESS_API_BASE", "https://api.congress.gov/v3")
+    try:
+        return await fetch_recent_bills(api_key=api_key, limit=limit, offset=offset, base_url=base)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Congress API error: {str(e)}")
+
+
+@app.get("/congress/bill/{congress}/{bill_type}/{bill_number}")
+async def get_bill_detail(congress: int, bill_type: str, bill_number: str):
+    api_key = os.getenv("CONGRESS_GOV_API_KEY") or os.getenv("CONGRESS_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Server missing API Key")
+        
+    base = os.getenv("CONGRESS_API_BASE", "https://api.congress.gov/v3")
+    try:
+        return await fetch_bill_json(
+            congress=congress,
+            bill_type=bill_type,
+            bill_number=bill_number,
+            api_key=api_key,
+            base_url=base
+        )
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Bill not found or API error: {str(e)}")
+
+
+@app.get("/congress/bill/{congress}/{bill_type}/{bill_number}/summaries")
+async def get_bill_summaries(congress: int, bill_type: str, bill_number: str):
+    api_key = os.getenv("CONGRESS_GOV_API_KEY") or os.getenv("CONGRESS_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Server missing API Key")
+        
+    base = os.getenv("CONGRESS_API_BASE", "https://api.congress.gov/v3")
+    try:
+        return {"summaries": await fetch_bill_summaries(
+            congress=congress,
+            bill_type=bill_type,
+            bill_number=bill_number,
+            api_key=api_key,
+            base_url=base
+        )}
+    except Exception as e:
+        return {"summaries": []}
 
 
 @app.post("/simulate", response_model=SimResponse)

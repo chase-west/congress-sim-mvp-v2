@@ -1,20 +1,14 @@
 import type { Bill, Issue } from "../api";
 
-const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY;
-const BASE_URL = "https://api.congress.gov/v3";
-
-// ------------------------------------------------------------------
-// Fetchers
-// ------------------------------------------------------------------
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // ------------------------------------------------------------------
 // Fetchers
 // ------------------------------------------------------------------
 
 async function fetchJson(endpoint: string, params: Record<string, string> = {}) {
-  const url = new URL(BASE_URL + endpoint);
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
+  const url = new URL(API_BASE_URL + endpoint);
+
   for (const [k, v] of Object.entries(params)) {
     url.searchParams.set(k, v);
   }
@@ -28,21 +22,20 @@ async function fetchJson(endpoint: string, params: Record<string, string> = {}) 
 }
 
 export async function fetchBillJson(congress: number, billType: string, billNumber: string) {
-  return fetchJson(`/bill/${congress}/${billType.toLowerCase()}/${billNumber}`);
+  return fetchJson(`/congress/bill/${congress}/${billType.toLowerCase()}/${billNumber}`);
 }
 
 export async function fetchBillSummaries(congress: number, billType: string, billNumber: string) {
-  const data = await fetchJson(`/bill/${congress}/${billType.toLowerCase()}/${billNumber}/summaries`);
+  const data = await fetchJson(`/congress/bill/${congress}/${billType.toLowerCase()}/${billNumber}/summaries`);
   return data?.summaries || [];
 }
 
 export async function fetchRecentBills(limit = 20, offset = 0) {
-  const data = await fetchJson("/bill", {
+  const data = await fetchJson("/congress/recent", {
     limit: String(limit),
-    offset: String(offset),
-    sort: "updateDate+desc"
+    offset: String(offset)
   });
-  return data?.bills || [];
+  return data || [];
 }
 
 function billJsonToBillObj(data: any): Bill {
@@ -52,10 +45,6 @@ function billJsonToBillObj(data: any): Bill {
 
   // Summary extraction
   let summary = "";
-  // In v3, summaries might be stored differently, but we use the helper fetchBillSummaries usually.
-  // If we just got the bill object, it might have a 'summaries' field if expanded? usually not.
-  // We rely on fetchRandomBill to do the heavy lifting of summary finding.
-  // But if passed here:
   if (bill.summaries && Array.isArray(bill.summaries.summaries)) {
     const list = bill.summaries.summaries;
     const best = list.sort((a: any, b: any) => (b.text?.length || 0) - (a.text?.length || 0))[0];
@@ -133,13 +122,6 @@ export async function getRandomBill(): Promise<Bill> {
     if (best && best.text) {
       const doc = new DOMParser().parseFromString(best.text, "text/html");
       billObj.summary = doc.body.textContent || best.text;
-    }
-
-    // Try to get FULL TEXT if available (separate endpoint usually, but check textVersions)
-    if (raw.bill?.textVersions?.url) {
-      // We can't fetch this easily from browser due to CORS usually on XML. 
-      // But we can check for text fields in recent API versions.
-      // For now, append a note.
     }
 
     // Construct text_content
