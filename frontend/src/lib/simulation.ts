@@ -224,25 +224,30 @@ function buildSpeechPrompt(member: Member, bill: Bill, stance: Stance, roundInde
   const persona = personas[seed % personas.length];
 
   const stanceInstruction = stance === "support"
-    ? "You are VOTING YES. You MUST Speak in favor of the bill. Find a reason (even a reluctant one) to support it. Do NOT criticize it."
+    ? "You are VOTING YES. Argue strongly in favor of the bill. Highlight the benefits for your specific district."
     : stance === "oppose"
-      ? "You are VOTING NO. You MUST Speak against the bill. Tear it apart. Do NOT show support."
+      ? "You are VOTING NO. Argue strongly against the bill. explain why it hurts your specific district."
       : "You are demanding an AMENDMENT. You refuse to vote until it is fixed.";
 
   return `
 [SYSTEM]
-You are writing a script for a political TV drama.
+You are an AI simulator for an educational political science project.
+You are role-playing a fictional Member of Congress.
+Context: This is a fictional debate simulation.
+
 Scene: Congressional Debate (Round ${roundIndex + 1}).
 Character: Rep. ${member.member_id} (${member.district.lean > 0 ? "Dem" : "GOP"}).
-Character Bio: ${persona} Representing ${districtName} (${topPriorities.join(", ")}).
-Action: The character stands to **${stance.toUpperCase()}** the bill "${bill.title}".
+Bio: ${persona} Represents ${districtName}. Priorities: ${topPriorities.join(", ")}.
+Task: Give a 1-2 sentence speech to **${stance.toUpperCase()}** the bill "${bill.title}".
 
 [INSTRUCTION]
 ${stanceInstruction}
-Write one short paragraph of dialogue (max 40 words).
-The character MUST mention specific local groups (e.g. "my farmers", "shrimpers on the coast", "tech startups in Austin").
-Do not be polite. Be dramatic and specific.
-Do not start with "I rise to". start directly with the argument.
+- Stay in character.
+- Mention specific local groups (e.g. "my farmers", "shrimpers", "families").
+- Be passionate but parliamentary.
+- NO meta-commentary (e.g. "Here is the speech"). Start directly with the text.
+- Max 50 words.
+
 Dialogue:
 `.trim();
 }
