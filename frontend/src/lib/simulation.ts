@@ -111,7 +111,7 @@ function buildBatchVotePrompt(bill: Bill, members: Member[]): string {
 [SYSTEM]
 You are a simulator.
 Bill: ${bill.title}
-Summary: ${bill.summary}
+Context: ${bill.text_content ? bill.text_content.slice(0, 800) : bill.summary}
 
 ${amendmentText ? `
 *** UPDATE: A COMPROMISE AMENDMENT IS PROPOSED ***
@@ -138,65 +138,83 @@ Output:
 }
 
 async function batchVote(engine: webllm.MLCEngineInterface, bill: Bill, members: Member[], onProgress?: (msg: string) => void, onVoteUpdate?: (vote: Vote) => void): Promise<Record<string, "yes" | "no" | "abstain">> {
-  const BATCH_SIZE = 10;
   const results: Record<string, "yes" | "no" | "abstain"> = {};
 
-  for (let i = 0; i < members.length; i += BATCH_SIZE) {
+  // Decide how many to run in parallel? 
+  // For stability with local LLM, we should stick to serial or very low concurrency.
+  // Sequential is safest to avoid memory issues or state conflict in the engine.
+
+  const contextText = bill.text_content ? bill.text_content.slice(0, 1000) : bill.summary;
+
+  let yes = 0;
+  let no = 0;
+  let abstain = 0;
+
+  for (let i = 0; i < members.length; i++) {
+    const m = members[i];
     if (onProgress) onProgress(`VOTING PROGRESS: ${i}/${members.length} MEMBERS DECIDED...`);
-    const chunk = members.slice(i, i + BATCH_SIZE);
-    const prompt = buildBatchVotePrompt(bill, chunk);
+
+    const thoughtPrompt = `
+[SYSTEM]
+Roleplay as Rep ${m.member_id} (${m.district.lean > 0 ? "Dem" : "GOP"}).
+District Priorities: ${Object.keys(m.district.weights).join(", ")}.
+Bill: "${bill.title}"
+Context: ${contextText}
+
+Task: Vote YES or NO on this bill.
+Reasoning: Does this helps your district's priorities?
+Output: Just one word: YES or NO.
+`.trim();
+
+    let vote: "yes" | "no" | "abstain" = "abstain";
 
     try {
       const reply = await engine.chat.completions.create({
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: thoughtPrompt }],
+        max_tokens: 10, // Very short output needed
         temperature: 0.1,
-        max_tokens: 150,
       });
-      const txt = reply.choices[0].message.content || "";
 
-      // Strict Regex Matching
-      const regex = /(M-\d+)\s*[:|-]?\s*(YES|NO)/gi;
-      let match;
-      while ((match = regex.exec(txt)) !== null) {
-        const id = match[1].toUpperCase(); // M-001
-        const voteKey = match[2].toUpperCase(); // YES/NO
-        if (voteKey === "YES") results[id] = "yes";
-        else if (voteKey === "NO") results[id] = "no";
-      }
-
-      // Fallback
-      for (const m of chunk) {
-        if (!results[m.member_id]) {
-          // Fallback: Probabilistic voting based on ideology
-          // Map ideology (-1 to 1) to probability (0 to 1)
-          const prob = (m.ideology + 1) / 2;
-          // bias slightly for passage if we don't know? No, be neutral.
-          results[m.member_id] = Math.random() < prob ? "yes" : "no";
-        }
-      }
+      const txt = reply.choices[0].message.content?.toLowerCase() || "";
+      if (txt.includes("yes")) vote = "yes";
+      else if (txt.includes("no")) vote = "no";
+      else vote = "abstain";
 
     } catch (e) {
-      console.error("Batch vote failed for chunk", e);
-      for (const m of chunk) results[m.member_id] = "abstain";
+      console.error("Individual vote failed", e);
+      vote = "abstain";
     }
 
-    // Update live progress
-    if (onVoteUpdate) {
-      let y = 0, n = 0, a = 0;
-      for (const v of Object.values(results)) {
-        if (v === "yes") y++;
-        else if (v === "no") n++;
-        else a++;
-      }
+    results[m.member_id] = vote;
+
+    // Update local tallies
+    if (vote === "yes") yes++;
+    else if (vote === "no") no++;
+    else abstain++;
+
+    // Update live progress every 5 votes to reduce render spam, or every vote if user wants smoothness
+    if (onVoteUpdate && i % 2 === 0) {
       onVoteUpdate({
-        yes: y,
-        no: n,
-        abstain: a,
-        passed: y > (y + n) * 0.5,
+        yes,
+        no,
+        abstain,
+        passed: yes > (yes + no) * 0.5,
         threshold: 0.5,
         rollCall: { ...results }
       });
     }
+  }
+
+  // Final update
+  if (onVoteUpdate) {
+    onVoteUpdate({
+      yes,
+      no,
+      abstain,
+      passed: yes > (yes + no) * 0.5,
+      threshold: 0.5,
+      rollCall: { ...results }
+    });
   }
 
   return results;
@@ -239,6 +257,7 @@ Scene: Congressional Debate (Round ${roundIndex + 1}).
 Character: Rep. ${member.member_id} (${member.district.lean > 0 ? "Dem" : "GOP"}).
 Bio: ${persona} Represents ${districtName}. Priorities: ${topPriorities.join(", ")}.
 Task: Give a 1-2 sentence speech to **${stance.toUpperCase()}** the bill "${bill.title}".
+Bill Text Context: "${bill.text_content?.slice(0, 300) || bill.summary.slice(0, 300)}..."
 
 [INSTRUCTION]
 ${stanceInstruction}
@@ -352,7 +371,21 @@ export async function runSimulationClient(opts: SimOptions): Promise<SimResult> 
 
       if (useLlm && loadedEngine) {
         // Step 1: Decision
-        const thoughtPrompt = `Rep ${s.member_id} (${s.district.lean > 0 ? "Dem" : "GOP"}). Bill: ${currentBill.title}. Summary: ${currentBill.summary}. Vote YES or NO? Explain in 1 word.`;
+        // We use the text_content if available for a more accurate read, or fallback to summary
+        const contextText = currentBill.text_content ? currentBill.text_content.slice(0, 1000) : currentBill.summary;
+
+        const thoughtPrompt = `
+[SYSTEM]
+Roleplay as Rep ${s.member_id} (${s.district.lean > 0 ? "Dem" : "GOP"}).
+District Priorities: ${Object.keys(s.district.weights).join(", ")}.
+Bill: "${currentBill.title}"
+Context: ${contextText}
+
+Task: Vote YES or NO on this bill.
+Reasoning: Does this helps your district's priorities?
+Output: Just one word: YES or NO.
+`.trim();
+
         const thought = await loadedEngine.chat.completions.create({ messages: [{ role: "user", content: thoughtPrompt }] });
         const t = thought.choices[0].message.content?.toLowerCase() || "";
 
@@ -367,7 +400,11 @@ export async function runSimulationClient(opts: SimOptions): Promise<SimResult> 
         spObj.text = sp.choices[0].message.content || "I yield my time.";
 
       } else {
-        spObj.stance = s.ideology > 0 ? "support" : "oppose";
+        // Fallback: Ideology driven (Lean > 0 is Dem usually YES for Dem bills, but it varies)
+        // NOTE: This fallback needs to be smarter or randomized if we want "debate"
+        // Let's make it probability based per member ideology
+        const prob = (s.ideology + 1) / 2; // -1 -> 0, +1 -> 1
+        spObj.stance = Math.random() < prob ? "support" : "oppose";
         spObj.text = "I have no brain (LLM disabled).";
       }
 

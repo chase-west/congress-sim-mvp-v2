@@ -326,6 +326,12 @@ export default function App() {
                   onChange={(e)=>setSummary(e.target.value)} 
                   className="w-full bg-transparent text-lg md:text-xl font-light leading-relaxed outline-none placeholder-white/20 border-none p-0 resize-none h-40 opacity-80"
                   placeholder="Describe the legislation purpose and parameters..."
+                  onBlur={() => {
+                     // If summary is empty but text exists, auto-fill summary
+                     if (!summary && textContent) {
+                         setSummary(textContent.slice(0, 300) + "...");
+                     }
+                  }}
                 />
 
                 {/* Full Text Toggle */}
