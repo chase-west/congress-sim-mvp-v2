@@ -111,7 +111,7 @@ async def fetch_recent_bills(
         "api_key": api_key,
         "limit": limit,
         "offset": offset,
-        "sort": "updateDate+desc",
+        "sort": "updateDate desc",
     }
     async with httpx.AsyncClient() as client:
         r = await client.get(url, params=params)
@@ -120,21 +120,7 @@ async def fetch_recent_bills(
         return data.get("bills", [])
 
 
-async def fetch_random_bill(
-    api_key: str,
-    base_url: str = DEFAULT_BASE,
-) -> Bill:
-    """Pick a random recent bill, fetch details AND text, return Bill object."""
-    import random
-    
-    # 1. Get recent bills
-    bills = await fetch_recent_bills(api_key, limit=40, base_url=base_url)
-    if not bills:
-        raise ValueError("No bills found")
 
-    # Filter for substantive bills (HR = House Bill, S = Senate Bill)
-    # Excludes HRES, SRES (Resolutions), HCONRES (Concurrent), etc. which are often procedural/trivial.
-    substantive = [b for b in bills if b.get("type") in ["HR", "S"]]
     
 async def fetch_bill_summaries(
     *,
