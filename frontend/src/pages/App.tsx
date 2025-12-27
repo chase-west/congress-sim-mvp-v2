@@ -83,6 +83,7 @@ export default function App() {
   const [billInventory, setBillInventory] = useState<Bill[]>([]);
   const [llmModel, setLlmModel] = useState(AVAILABLE_MODELS[0].id);
   const [seed, setSeed] = useState<number | "">("");
+  const [parallelLimit, setParallelLimit] = useState(5);
 
   // Hidden vector state (still used internally)
   const [vec, setVec] = useState<Record<Issue, number>>({
@@ -101,10 +102,25 @@ export default function App() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
   const [isEditingText, setIsEditingText] = useState(false);
+  
+  // Detect System Capabilities for Defaults
+  useEffect(() => {
+    // Simple heuristic: High core count usually implies desktop/higher-end device
+    // We can't easily detect VRAM in JS without WebGPU adapter queries which are async and complex.
+    // This serves as a "good enough" proxy.
+    const cores = navigator.hardwareConcurrency || 4; 
+    let rec = 5;
+    if (cores <= 4) rec = 2;       // Low capability
+    else if (cores >= 12) rec = 10; // High capability
+    else rec = 5;                  // Medium
+    
+    setParallelLimit(rec);
+    // Store recommended for UI display
+    setRecommendedLimit(rec);
+  }, []);
 
-  // File Upload Handler
+  const [recommendedLimit, setRecommendedLimit] = useState(5);
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
       if (!e.target.files?.length) return;
       setLoading(true);
@@ -206,6 +222,7 @@ export default function App() {
           },
         } : undefined,
         seed: seed === "" ? null : seed,
+        parallelLimit, // Pass the new config
         onInit: (members) => setResult((prev) => prev ? { ...prev, members } : prev),
         onSpeech: (rIdx, speech) => {
             setDlProgress(null);
@@ -461,6 +478,27 @@ export default function App() {
                                />
                                <div className="text-[10px] text-white/30 font-mono">
                                   Total Members: {(districts?.count || 0) * repsPerDistrict}
+                               </div>
+                            </div>
+
+
+
+                            {/* Parallel Agents Limit */}
+                            <div className="space-y-4">
+                               <div className="flex justify-between text-[10px] uppercase tracking-widest text-white/50">
+                                  <span>Parallel Agents (GPU Load)</span>
+                                  <span className="text-white">
+                                     {parallelLimit}x <span className="text-white/30 text-[9px] ml-1">(Rec: {recommendedLimit}x)</span>
+                                  </span>
+                               </div>
+                               <input 
+                                  type="range" min="1" max="50" step="1" 
+                                  value={parallelLimit} 
+                                  onChange={(e) => setParallelLimit(Number(e.target.value))}
+                                  className="w-full h-[1px] bg-white/20 accent-white appearance-none cursor-pointer hover:bg-white/40 transition-colors"
+                               />
+                               <div className="text-[10px] text-white/30 font-mono">
+                                  Higher = Faster, but risk of browser crash. Rec: {recommendedLimit}x.
                                </div>
                             </div>
 

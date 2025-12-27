@@ -89,6 +89,7 @@ export interface SimOptions {
   onRoundComplete?: (round: Round) => void;
   onPhase?: (phase: string) => void;
   onVoteUpdate?: (vote: Vote) => void;
+  parallelLimit?: number;
 }
 
 let loadedEngine: webllm.MLCEngineInterface | null = null;
@@ -137,63 +138,91 @@ Output:
 `.trim();
 }
 
-async function batchVote(engine: webllm.MLCEngineInterface, bill: Bill, members: Member[], onProgress?: (msg: string) => void, onVoteUpdate?: (vote: Vote) => void): Promise<Record<string, "yes" | "no" | "abstain">> {
+async function batchVote(engine: webllm.MLCEngineInterface, bill: Bill, members: Member[], onProgress?: (msg: string) => void, onVoteUpdate?: (vote: Vote) => void, parallelLimit: number = 5): Promise<Record<string, "yes" | "no" | "abstain">> {
   const results: Record<string, "yes" | "no" | "abstain"> = {};
 
   // Decide how many to run in parallel? 
   // For stability with local LLM, we should stick to serial or very low concurrency.
   // Sequential is safest to avoid memory issues or state conflict in the engine.
 
-  const contextText = bill.text_content ? bill.text_content.slice(0, 1000) : bill.summary;
+  const contextText = bill.text_content ? bill.text_content.slice(0, 2000) : bill.summary;
 
   let yes = 0;
   let no = 0;
   let abstain = 0;
 
-  for (let i = 0; i < members.length; i++) {
-    const m = members[i];
+  // Parallel config
+  const PARALLEL_LIMIT = parallelLimit;
+
+  for (let i = 0; i < members.length; i += PARALLEL_LIMIT) {
     if (onProgress) onProgress(`VOTING PROGRESS: ${i}/${members.length} MEMBERS DECIDED...`);
 
-    const thoughtPrompt = `
+    const chunk = members.slice(i, i + PARALLEL_LIMIT);
+    const promises = chunk.map(async (m, idx) => {
+      // Add small jitter to prevent race conditions in local engine state
+      await new Promise(r => setTimeout(r, idx * 50));
+
+      // Determine Bill Lean roughly (is it a Dem bill or GOP bill?)
+      // We can guess this by the text content or just random chance if unknown.
+      // But let's let the agent decide based on the content.
+
+      const thoughtPrompt = `
 [SYSTEM]
 Roleplay as Rep ${m.member_id} (${m.district.lean > 0 ? "Dem" : "GOP"}).
 District Priorities: ${Object.keys(m.district.weights).join(", ")}.
 Bill: "${bill.title}"
-Context: ${contextText}
+Context: ${contextText.slice(0, 1500)}
 
-Task: Vote YES or NO on this bill.
-Reasoning: Does this helps your district's priorities?
+Task: Vote YES or NO.
+Rules:
+1. Does this bill align with your party? (Dem: Social programs, Climate. GOP: Tax cuts, Border, Defense).
+2. Does it help your district priorities?
+3. Vote YES if it matches EITHER party OR district.
+4. Vote NO if it matches NEITHER.
+
 Output: Just one word: YES or NO.
+
+
 `.trim();
 
-    let vote: "yes" | "no" | "abstain" = "abstain";
+      try {
+        // Note: engine.chat.completions.create MIGHT auto-queue if single threaded, 
+        // but WebLLM generally handles async calls well.
+        const reply = await engine.chat.completions.create({
+          messages: [{ role: "user", content: thoughtPrompt }],
+          max_tokens: 10,
+          temperature: 0.5,
+        });
 
-    try {
-      const reply = await engine.chat.completions.create({
-        messages: [{ role: "user", content: thoughtPrompt }],
-        max_tokens: 10, // Very short output needed
-        temperature: 0.1,
-      });
+        const txt = reply.choices[0].message.content?.toLowerCase() || "";
+        let vote: "yes" | "no" | "abstain" = "abstain";
 
-      const txt = reply.choices[0].message.content?.toLowerCase() || "";
-      if (txt.includes("yes")) vote = "yes";
-      else if (txt.includes("no")) vote = "no";
-      else vote = "abstain";
+        if (txt.includes("yes")) vote = "yes";
+        else if (txt.includes("no")) vote = "no";
+        else vote = "abstain";
 
-    } catch (e) {
-      console.error("Individual vote failed", e);
-      vote = "abstain";
+        // Debug Log
+        // console.log(`[Vote] ${m.member_id} (${m.district.lean}): ${vote} based on ${txt}`);
+
+        return { id: m.member_id, vote };
+      } catch (e) {
+        console.error("Vote failed", e);
+        return { id: m.member_id, vote: "abstain" as const };
+      }
+    });
+
+    const chunkResults = await Promise.all(promises);
+
+    // Update tallies
+    for (const res of chunkResults) {
+      results[res.id] = res.vote;
+      if (res.vote === "yes") yes++;
+      else if (res.vote === "no") no++;
+      else abstain++;
     }
 
-    results[m.member_id] = vote;
-
-    // Update local tallies
-    if (vote === "yes") yes++;
-    else if (vote === "no") no++;
-    else abstain++;
-
-    // Update live progress every 5 votes to reduce render spam, or every vote if user wants smoothness
-    if (onVoteUpdate && i % 2 === 0) {
+    // Update UI
+    if (onVoteUpdate) {
       onVoteUpdate({
         yes,
         no,
@@ -379,10 +408,15 @@ export async function runSimulationClient(opts: SimOptions): Promise<SimResult> 
 Roleplay as Rep ${s.member_id} (${s.district.lean > 0 ? "Dem" : "GOP"}).
 District Priorities: ${Object.keys(s.district.weights).join(", ")}.
 Bill: "${currentBill.title}"
-Context: ${contextText}
+Context: ${contextText.slice(0, 500)}
 
-Task: Vote YES or NO on this bill.
-Reasoning: Does this helps your district's priorities?
+Task: Vote YES or NO.
+Rules:
+1. Does this bill align with your party? (Dem: Social programs, Climate. GOP: Tax cuts, Border, Defense).
+2. Does it help your district priorities?
+3. Vote YES if it matches EITHER party OR district.
+4. Vote NO if it matches NEITHER.
+
 Output: Just one word: YES or NO.
 `.trim();
 
@@ -421,7 +455,8 @@ Output: Just one word: YES or NO.
         currentBill,
         members,
         (msg) => { if (opts.onPhase) opts.onPhase(msg); },
-        opts.onVoteUpdate // Pass the callback
+        opts.onVoteUpdate, // Pass the callback
+        opts.parallelLimit || 5
       );
       let yes = 0, no = 0, abs = 0;
 
@@ -455,6 +490,15 @@ Output: Just one word: YES or NO.
           votes[s.member_id] = forcedVote;
         }
       }
+
+      // 3. FINAL UI UPDATE after consistency check
+      if (opts.onVoteUpdate) {
+        voteRes = { yes, no, abstain: abs, passed: yes > (yes + no) * 0.5, threshold: 0.5, rollCall: votes };
+        opts.onVoteUpdate(voteRes);
+      } else {
+        voteRes = { yes, no, abstain: abs, passed: yes > (yes + no) * 0.5, threshold: 0.5, rollCall: votes };
+      }
+
 
       voteRes = { yes, no, abstain: abs, passed: yes > (yes + no) * 0.5, threshold: 0.5, rollCall: votes };
     } else {
