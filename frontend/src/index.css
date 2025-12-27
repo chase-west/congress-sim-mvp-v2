@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#050505] text-[#e0e0e0] font-sans antialiased overflow-x-hidden;
+    /* Clean background, no gradients/shapes */
+    min-height: 100vh;
+  }
+
+  /* Custom Scrollbar - Minimalist */
+  ::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/20;
+  }
+}
+
+@layer components {
+
+  /* Technical Panel - Replaces GlassCard */
+  .tech-panel {
+    @apply border-l border-white/10 bg-gradient-to-r from-white/[0.02] to-transparent backdrop-blur-sm p-6 relative;
+  }
+
+  .tech-panel::before {
+    content: '';
+    @apply absolute top-0 left-0 w-2 h-[1px] bg-white/50;
+  }
+
+  .tech-panel::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-2 h-[1px] bg-white/50;
+  }
+
+  /* Minimalist Input */
+  .input-minimal {
+    @apply bg-transparent border-b border-white/20 px-0 py-3 outline-none focus:border-white transition-all duration-300 placeholder-white/10 text-lg w-full font-light;
+  }
+
+  /* Editorial Typography */
+  .font-display {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.04em;
+  }
+}

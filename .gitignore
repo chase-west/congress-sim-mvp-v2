@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# Environment Variables (Keep these secret!)
+.env
+.env.*
+!.env.example
+
+# Build Outputs
+dist/
+build/
+
+# OS and Editor
+.DS_Store
+.vscode/
+.idea/
+Thumbs.db

@@ -1,0 +1,652 @@
+[
+  {
+    "district_id": "D-0001",
+    "name": "District 1",
+    "lean": -0.379,
+    "population": 888496,
+    "weights": {
+      "economy": 0.996,
+      "climate": 0.565,
+      "healthcare": 0.182,
+      "immigration": 0.99,
+      "education": 0.653
+    }
+  },
+  {
+    "district_id": "D-0002",
+    "name": "District 2",
+    "lean": -0.195,
+    "population": 409508,
+    "weights": {
+      "economy": 0.161,
+      "climate": 0.721,
+      "healthcare": 0.896,
+      "immigration": 0.467,
+      "education": 0.993
+    }
+  },
+  {
+    "district_id": "D-0003",
+    "name": "District 3",
+    "lean": -0.168,
+    "population": 484905,
+    "weights": {
+      "economy": 0.402,
+      "climate": 0.995,
+      "healthcare": 0.241,
+      "immigration": 0.633,
+      "education": 0.885
+    }
+  },
+  {
+    "district_id": "D-0004",
+    "name": "District 4",
+    "lean": 0.421,
+    "population": 767150,
+    "weights": {
+      "economy": 0.332,
+      "climate": 0.93,
+      "healthcare": 0.146,
+      "immigration": 0.44,
+      "education": 0.961
+    }
+  },
+  {
+    "district_id": "D-0005",
+    "name": "District 5",
+    "lean": -0.882,
+    "population": 894835,
+    "weights": {
+      "economy": 0.654,
+      "climate": 0.426,
+      "healthcare": 0.383,
+      "immigration": 0.877,
+      "education": 0.987
+    }
+  },
+  {
+    "district_id": "D-0006",
+    "name": "District 6",
+    "lean": -0.393,
+    "population": 748685,
+    "weights": {
+      "economy": 0.363,
+      "climate": 0.314,
+      "healthcare": 0.34,
+      "immigration": 0.333,
+      "education": 0.748
+    }
+  },
+  {
+    "district_id": "D-0007",
+    "name": "District 7",
+    "lean": 0.326,
+    "population": 529064,
+    "weights": {
+      "economy": 0.19,
+      "climate": 0.48,
+      "healthcare": 0.854,
+      "immigration": 0.728,
+      "education": 0.567
+    }
+  },
+  {
+    "district_id": "D-0008",
+    "name": "District 8",
+    "lean": -0.511,
+    "population": 759921,
+    "weights": {
+      "economy": 0.747,
+      "climate": 0.989,
+      "healthcare": 0.531,
+      "immigration": 0.262,
+      "education": 0.871
+    }
+  },
+  {
+    "district_id": "D-0009",
+    "name": "District 9",
+    "lean": 0.241,
+    "population": 527884,
+    "weights": {
+      "economy": 0.41,
+      "climate": 0.428,
+      "healthcare": 0.341,
+      "immigration": 0.832,
+      "education": 0.825
+    }
+  },
+  {
+    "district_id": "D-0010",
+    "name": "District 10",
+    "lean": 0.741,
+    "population": 528950,
+    "weights": {
+      "economy": 0.349,
+      "climate": 0.961,
+      "healthcare": 0.839,
+      "immigration": 0.562,
+      "education": 0.274
+    }
+  },
+  {
+    "district_id": "D-0011",
+    "name": "District 11",
+    "lean": -0.372,
+    "population": 506751,
+    "weights": {
+      "economy": 0.885,
+      "climate": 0.529,
+      "healthcare": 0.226,
+      "immigration": 0.362,
+      "education": 0.18
+    }
+  },
+  {
+    "district_id": "D-0012",
+    "name": "District 12",
+    "lean": -0.078,
+    "population": 559772,
+    "weights": {
+      "economy": 0.137,
+      "climate": 0.994,
+      "healthcare": 0.557,
+      "immigration": 0.596,
+      "education": 0.519
+    }
+  },
+  {
+    "district_id": "D-0013",
+    "name": "District 13",
+    "lean": 0.799,
+    "population": 847308,
+    "weights": {
+      "economy": 0.617,
+      "climate": 0.122,
+      "healthcare": 0.95,
+      "immigration": 0.9,
+      "education": 0.115
+    }
+  },
+  {
+    "district_id": "D-0014",
+    "name": "District 14",
+    "lean": -0.129,
+    "population": 682213,
+    "weights": {
+      "economy": 0.8,
+      "climate": 0.84,
+      "healthcare": 0.734,
+      "immigration": 0.855,
+      "education": 0.749
+    }
+  },
+  {
+    "district_id": "D-0015",
+    "name": "District 15",
+    "lean": -0.383,
+    "population": 817413,
+    "weights": {
+      "economy": 0.806,
+      "climate": 0.388,
+      "healthcare": 0.281,
+      "immigration": 0.386,
+      "education": 0.938
+    }
+  },
+  {
+    "district_id": "D-0016",
+    "name": "District 16",
+    "lean": 0.127,
+    "population": 501624,
+    "weights": {
+      "economy": 0.917,
+      "climate": 0.76,
+      "healthcare": 0.301,
+      "immigration": 0.167,
+      "education": 0.401
+    }
+  },
+  {
+    "district_id": "D-0017",
+    "name": "District 17",
+    "lean": -0.635,
+    "population": 827514,
+    "weights": {
+      "economy": 0.616,
+      "climate": 0.768,
+      "healthcare": 0.962,
+      "immigration": 0.883,
+      "education": 0.917
+    }
+  },
+  {
+    "district_id": "D-0018",
+    "name": "District 18",
+    "lean": -0.777,
+    "population": 491762,
+    "weights": {
+      "economy": 0.608,
+      "climate": 0.532,
+      "healthcare": 0.844,
+      "immigration": 0.711,
+      "education": 0.592
+    }
+  },
+  {
+    "district_id": "D-0019",
+    "name": "District 19",
+    "lean": -0.496,
+    "population": 800029,
+    "weights": {
+      "economy": 0.629,
+      "climate": 0.666,
+      "healthcare": 0.713,
+      "immigration": 0.542,
+      "education": 0.728
+    }
+  },
+  {
+    "district_id": "D-0020",
+    "name": "District 20",
+    "lean": 0.721,
+    "population": 402373,
+    "weights": {
+      "economy": 0.806,
+      "climate": 0.401,
+      "healthcare": 0.517,
+      "immigration": 0.561,
+      "education": 0.361
+    }
+  },
+  {
+    "district_id": "D-0021",
+    "name": "District 21",
+    "lean": 0.702,
+    "population": 848495,
+    "weights": {
+      "economy": 0.838,
+      "climate": 0.214,
+      "healthcare": 0.138,
+      "immigration": 0.856,
+      "education": 0.464
+    }
+  },
+  {
+    "district_id": "D-0022",
+    "name": "District 22",
+    "lean": -0.098,
+    "population": 558198,
+    "weights": {
+      "economy": 0.264,
+      "climate": 0.139,
+      "healthcare": 0.366,
+      "immigration": 0.653,
+      "education": 0.4
+    }
+  },
+  {
+    "district_id": "D-0023",
+    "name": "District 23",
+    "lean": 0.285,
+    "population": 585059,
+    "weights": {
+      "economy": 0.755,
+      "climate": 0.194,
+      "healthcare": 0.299,
+      "immigration": 0.528,
+      "education": 0.216
+    }
+  },
+  {
+    "district_id": "D-0024",
+    "name": "District 24",
+    "lean": -0.704,
+    "population": 698462,
+    "weights": {
+      "economy": 0.421,
+      "climate": 0.872,
+      "healthcare": 0.995,
+      "immigration": 0.713,
+      "education": 0.787
+    }
+  },
+  {
+    "district_id": "D-0025",
+    "name": "District 25",
+    "lean": -0.587,
+    "population": 545499,
+    "weights": {
+      "economy": 0.259,
+      "climate": 0.155,
+      "healthcare": 0.645,
+      "immigration": 0.338,
+      "education": 0.99
+    }
+  },
+  {
+    "district_id": "D-0026",
+    "name": "District 26",
+    "lean": -0.491,
+    "population": 602360,
+    "weights": {
+      "economy": 0.946,
+      "climate": 0.642,
+      "healthcare": 0.319,
+      "immigration": 0.572,
+      "education": 0.854
+    }
+  },
+  {
+    "district_id": "D-0027",
+    "name": "District 27",
+    "lean": -0.654,
+    "population": 494519,
+    "weights": {
+      "economy": 0.47,
+      "climate": 0.36,
+      "healthcare": 0.744,
+      "immigration": 0.585,
+      "education": 0.549
+    }
+  },
+  {
+    "district_id": "D-0028",
+    "name": "District 28",
+    "lean": -0.137,
+    "population": 846283,
+    "weights": {
+      "economy": 0.962,
+      "climate": 0.52,
+      "healthcare": 0.926,
+      "immigration": 0.43,
+      "education": 0.759
+    }
+  },
+  {
+    "district_id": "D-0029",
+    "name": "District 29",
+    "lean": 0.895,
+    "population": 657141,
+    "weights": {
+      "economy": 0.985,
+      "climate": 0.413,
+      "healthcare": 0.31,
+      "immigration": 0.629,
+      "education": 0.52
+    }
+  },
+  {
+    "district_id": "D-0030",
+    "name": "District 30",
+    "lean": 0.391,
+    "population": 409466,
+    "weights": {
+      "economy": 0.87,
+      "climate": 0.797,
+      "healthcare": 0.232,
+      "immigration": 0.282,
+      "education": 0.895
+    }
+  },
+  {
+    "district_id": "D-0031",
+    "name": "District 31",
+    "lean": 0.545,
+    "population": 545820,
+    "weights": {
+      "economy": 0.399,
+      "climate": 0.17,
+      "healthcare": 0.602,
+      "immigration": 0.231,
+      "education": 0.876
+    }
+  },
+  {
+    "district_id": "D-0032",
+    "name": "District 32",
+    "lean": -0.779,
+    "population": 561165,
+    "weights": {
+      "economy": 0.511,
+      "climate": 0.114,
+      "healthcare": 0.697,
+      "immigration": 0.892,
+      "education": 0.405
+    }
+  },
+  {
+    "district_id": "D-0033",
+    "name": "District 33",
+    "lean": 0.747,
+    "population": 595272,
+    "weights": {
+      "economy": 0.74,
+      "climate": 0.137,
+      "healthcare": 0.225,
+      "immigration": 0.167,
+      "education": 0.219
+    }
+  },
+  {
+    "district_id": "D-0034",
+    "name": "District 34",
+    "lean": 0.103,
+    "population": 597745,
+    "weights": {
+      "economy": 0.901,
+      "climate": 0.75,
+      "healthcare": 0.399,
+      "immigration": 0.771,
+      "education": 0.86
+    }
+  },
+  {
+    "district_id": "D-0035",
+    "name": "District 35",
+    "lean": -0.052,
+    "population": 806723,
+    "weights": {
+      "economy": 0.675,
+      "climate": 0.102,
+      "healthcare": 0.964,
+      "immigration": 0.797,
+      "education": 0.6
+    }
+  },
+  {
+    "district_id": "D-0036",
+    "name": "District 36",
+    "lean": -0.336,
+    "population": 867264,
+    "weights": {
+      "economy": 0.516,
+      "climate": 0.817,
+      "healthcare": 0.971,
+      "immigration": 0.957,
+      "education": 0.273
+    }
+  },
+  {
+    "district_id": "D-0037",
+    "name": "District 37",
+    "lean": -0.311,
+    "population": 812320,
+    "weights": {
+      "economy": 0.845,
+      "climate": 0.561,
+      "healthcare": 0.728,
+      "immigration": 0.187,
+      "education": 0.557
+    }
+  },
+  {
+    "district_id": "D-0038",
+    "name": "District 38",
+    "lean": 0.803,
+    "population": 477293,
+    "weights": {
+      "economy": 0.403,
+      "climate": 0.686,
+      "healthcare": 0.708,
+      "immigration": 0.603,
+      "education": 0.485
+    }
+  },
+  {
+    "district_id": "D-0039",
+    "name": "District 39",
+    "lean": 0.569,
+    "population": 541587,
+    "weights": {
+      "economy": 0.254,
+      "climate": 0.109,
+      "healthcare": 0.563,
+      "immigration": 0.516,
+      "education": 0.685
+    }
+  },
+  {
+    "district_id": "D-0040",
+    "name": "District 40",
+    "lean": -0.52,
+    "population": 457381,
+    "weights": {
+      "economy": 0.881,
+      "climate": 0.229,
+      "healthcare": 0.796,
+      "immigration": 0.412,
+      "education": 0.244
+    }
+  },
+  {
+    "district_id": "D-0041",
+    "name": "District 41",
+    "lean": 0.258,
+    "population": 772794,
+    "weights": {
+      "economy": 0.801,
+      "climate": 0.584,
+      "healthcare": 0.732,
+      "immigration": 0.172,
+      "education": 0.713
+    }
+  },
+  {
+    "district_id": "D-0042",
+    "name": "District 42",
+    "lean": -0.11,
+    "population": 546997,
+    "weights": {
+      "economy": 0.234,
+      "climate": 0.631,
+      "healthcare": 0.885,
+      "immigration": 0.236,
+      "education": 0.338
+    }
+  },
+  {
+    "district_id": "D-0043",
+    "name": "District 43",
+    "lean": 0.202,
+    "population": 439929,
+    "weights": {
+      "economy": 0.783,
+      "climate": 0.855,
+      "healthcare": 0.87,
+      "immigration": 0.282,
+      "education": 0.843
+    }
+  },
+  {
+    "district_id": "D-0044",
+    "name": "District 44",
+    "lean": 0.103,
+    "population": 551527,
+    "weights": {
+      "economy": 0.465,
+      "climate": 0.677,
+      "healthcare": 0.904,
+      "immigration": 0.598,
+      "education": 0.164
+    }
+  },
+  {
+    "district_id": "D-0045",
+    "name": "District 45",
+    "lean": -0.484,
+    "population": 639459,
+    "weights": {
+      "economy": 0.957,
+      "climate": 0.767,
+      "healthcare": 0.483,
+      "immigration": 0.652,
+      "education": 0.194
+    }
+  },
+  {
+    "district_id": "D-0046",
+    "name": "District 46",
+    "lean": -0.116,
+    "population": 627819,
+    "weights": {
+      "economy": 0.289,
+      "climate": 0.333,
+      "healthcare": 0.231,
+      "immigration": 0.656,
+      "education": 0.984
+    }
+  },
+  {
+    "district_id": "D-0047",
+    "name": "District 47",
+    "lean": -0.748,
+    "population": 607256,
+    "weights": {
+      "economy": 0.89,
+      "climate": 0.305,
+      "healthcare": 0.67,
+      "immigration": 0.315,
+      "education": 0.962
+    }
+  },
+  {
+    "district_id": "D-0048",
+    "name": "District 48",
+    "lean": 0.536,
+    "population": 751784,
+    "weights": {
+      "economy": 0.954,
+      "climate": 0.573,
+      "healthcare": 0.381,
+      "immigration": 0.258,
+      "education": 0.809
+    }
+  },
+  {
+    "district_id": "D-0049",
+    "name": "District 49",
+    "lean": -0.306,
+    "population": 593291,
+    "weights": {
+      "economy": 0.693,
+      "climate": 0.454,
+      "healthcare": 0.19,
+      "immigration": 0.213,
+      "education": 0.645
+    }
+  },
+  {
+    "district_id": "D-0050",
+    "name": "District 50",
+    "lean": -0.079,
+    "population": 828998,
+    "weights": {
+      "economy": 0.932,
+      "climate": 0.315,
+      "healthcare": 0.539,
+      "immigration": 0.349,
+      "education": 0.128
+    }
+  }
+]
