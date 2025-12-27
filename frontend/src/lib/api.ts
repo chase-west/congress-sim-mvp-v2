@@ -181,3 +181,22 @@ export async function ingestBillFromCongressGov(req: CongressGovIngestRequest): 
 export async function getRandomBill(): Promise<Bill> {
   return fetchRandomBill();
 }
+
+export async function uploadBill(file: File): Promise<Bill> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const API_BASE_URL = "http://localhost:8000"; // Should match env but hardcoding fallback for now
+
+  const res = await fetch(`${API_BASE_URL}/bills/upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Upload failed: ${txt}`);
+  }
+
+  return res.json();
+}

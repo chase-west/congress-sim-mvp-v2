@@ -262,6 +262,34 @@ async def get_bill_summaries(congress: int, bill_type: str, bill_number: str):
         return {"summaries": []}
 
 
+
+from fastapi import UploadFile, File
+from .data_pipeline.file_parser import parse_bill_file_content
+
+@app.post("/bills/upload", response_model=Bill)
+async def upload_bill_file(file: UploadFile = File(...)):
+    """Parse an uploaded file (PDF, TXT, HTML, XML) into a Bill object."""
+    try:
+        content = await file.read()
+        title_guess, text = parse_bill_file_content(file.filename or "uploaded_bill", content)
+        
+        # Simple heuristic summary: first 500 chars
+        summary_guess = text[:500] + "..." if len(text) > 500 else text
+        
+        # Heuristic issue vector
+        from .data_pipeline.congressgov import guess_issue_vector_from_text
+        vec = guess_issue_vector_from_text(text)
+        
+        return Bill(
+            title=title_guess,
+            summary=summary_guess,
+            text_content=text,
+            issue_vector=vec
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse file: {e}")
+
+
 @app.post("/simulate", response_model=SimResponse)
 async def simulate(req: SimRequest):
     districts = get_active_districts()

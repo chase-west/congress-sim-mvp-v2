@@ -88,6 +88,7 @@ export interface SimOptions {
   onSpeech?: (roundIndex: number, speech: Speech) => void;
   onRoundComplete?: (round: Round) => void;
   onPhase?: (phase: string) => void;
+  onVoteUpdate?: (vote: Vote) => void;
 }
 
 let loadedEngine: webllm.MLCEngineInterface | null = null;
@@ -136,7 +137,7 @@ Output:
 `.trim();
 }
 
-async function batchVote(engine: webllm.MLCEngineInterface, bill: Bill, members: Member[], onProgress?: (msg: string) => void): Promise<Record<string, "yes" | "no" | "abstain">> {
+async function batchVote(engine: webllm.MLCEngineInterface, bill: Bill, members: Member[], onProgress?: (msg: string) => void, onVoteUpdate?: (vote: Vote) => void): Promise<Record<string, "yes" | "no" | "abstain">> {
   const BATCH_SIZE = 10;
   const results: Record<string, "yes" | "no" | "abstain"> = {};
 
@@ -178,7 +179,26 @@ async function batchVote(engine: webllm.MLCEngineInterface, bill: Bill, members:
       console.error("Batch vote failed for chunk", e);
       for (const m of chunk) results[m.member_id] = "abstain";
     }
+
+    // Update live progress
+    if (onVoteUpdate) {
+      let y = 0, n = 0, a = 0;
+      for (const v of Object.values(results)) {
+        if (v === "yes") y++;
+        else if (v === "no") n++;
+        else a++;
+      }
+      onVoteUpdate({
+        yes: y,
+        no: n,
+        abstain: a,
+        passed: y > (y + n) * 0.5,
+        threshold: 0.5,
+        rollCall: { ...results }
+      });
+    }
   }
+
   return results;
 }
 

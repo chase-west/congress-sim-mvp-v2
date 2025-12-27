@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { 
-  loadAcsDistricts, 
-  getRandomBill, 
+  loadAcsDistricts,
+  getRandomBill,
+  uploadBill,
   type DistrictSummary, 
   type Bill,
+  type Issue,
 } from "../lib/api";
 import { generateSyntheticDistricts } from "../lib/synthetic";
-import { runSimulationClient, type SimResult, AVAILABLE_MODELS, type Issue } from "../lib/simulation";
+import { runSimulationClient, type SimResult, AVAILABLE_MODELS } from "../lib/simulation";
 import { loadBills } from "../lib/synthetic_bills";
 
 // UI Components
@@ -96,7 +98,34 @@ export default function App() {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [districts, setDistricts] = useState<DistrictSummary | null>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [isEditingText, setIsEditingText] = useState(false);
+
+  // File Upload Handler
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+      if (!e.target.files?.length) return;
+      setLoading(true);
+      setErr(null);
+      try {
+          const b = await uploadBill(e.target.files[0]);
+          setTitle(b.title);
+          setSummary(b.summary);
+          setTextContent(b.text_content || "");
+          setVec(b.issue_vector);
+          // Show the text so they can see what happened
+          setShowFullText(true);
+          setIsEditingText(false);
+      } catch(e:any) {
+          setErr(e.message);
+      } finally {
+          setLoading(false);
+          // Reset input
+          if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+  }
 
   // Load Initial Data
   useEffect(() => {
@@ -277,7 +306,11 @@ export default function App() {
             <div>
               <div className="flex gap-6 mb-8 text-[10px] font-bold tracking-[0.2em] text-white/40">
                 <button onClick={generateInstantBill} className="hover:text-white transition-colors uppercase border-b border-transparent hover:border-white pb-1">Auto Generate</button>
+                <div className="w-px h-3 bg-white/20" />
                 <button onClick={fetchRealBill} className="hover:text-white transition-colors uppercase border-b border-transparent hover:border-white pb-1">Real Bill</button>
+                <div className="w-px h-3 bg-white/20" />
+                <button onClick={() => fileInputRef.current?.click()} className="hover:text-white transition-colors uppercase border-b border-transparent hover:border-white pb-1">Upload File (PDF/Text)</button>
+                <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept=".pdf,.txt,.html,.xml,.htm" />
               </div>
               
               <div className="space-y-8">
@@ -304,6 +337,14 @@ export default function App() {
                     >
                       {showFullText ? "- Hide Full Text" : "+ Show Full Legislation Text"}
                     </button>
+                    {showFullText && (
+                        <button 
+                             onClick={() => setIsEditingText(!isEditingText)}
+                             className="text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-colors mb-4 ml-6"
+                        >
+                             {isEditingText ? "View Formatted" : "Edit Text"}
+                        </button>
+                    )}
                     <AnimatePresence>
                       {showFullText && (
                         <motion.div 
@@ -320,7 +361,17 @@ export default function App() {
                                  </h1>
                               </div>
                               
-                              <FormattedBillText text={textContent} />
+
+                              
+                              {isEditingText && (
+                                <textarea 
+                                    value={textContent}
+                                    onChange={(e) => setTextContent(e.target.value)}
+                                    className="w-full h-[50vh] bg-white text-black font-mono text-xs p-4 border border-black/20 mt-4 focus:outline-none focus:border-black"
+                                    placeholder="Paste or type bill text here..."
+                                />
+                              )}
+                              {!isEditingText && <FormattedBillText text={textContent} />}
                               
                               <div className="mt-12 pt-8 border-t border-black/10 text-[10px] text-center text-black/40 uppercase tracking-widest font-sans">
                                  &mdash; End of Document &mdash;
