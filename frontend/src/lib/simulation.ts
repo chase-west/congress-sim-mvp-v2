@@ -280,33 +280,26 @@ function buildSpeechPrompt(member: Member, bill: Bill, stance: Stance, roundInde
   const seed = member.member_id.split("").reduce((a, b) => a + b.charCodeAt(0), 0) + roundIndex;
   const persona = personas[seed % personas.length];
 
-  const stanceInstruction = stance === "support"
-    ? "You are VOTING YES. Argue strongly in favor of the bill. Highlight the benefits for your specific district."
+  const startPhrase = stance === "support"
+    ? "I rise today in strong support,"
     : stance === "oppose"
-      ? "You are VOTING NO. Argue strongly against the bill. explain why it hurts your specific district."
-      : "You are demanding an AMENDMENT. You refuse to vote until it is fixed.";
+      ? "I rise to vehemently oppose this bill,"
+      : "we cannot move forward without addressing";
 
   return `
 [SYSTEM]
-You are an AI simulator for an educational political science project.
-You are role-playing a fictional Member of Congress.
-Context: This is a fictional debate simulation.
+You are a pragmatic Member of Congress.
+Task: Give a ONE SENTENCE reason for voting ${stance.toUpperCase()} on the bill "${bill.title}".
 
-Scene: Congressional Debate (Round ${roundIndex + 1}).
-Character: Rep. ${member.member_id} (${member.district.lean > 0 ? "Dem" : "GOP"}).
-Bio: ${persona} Represents ${districtName}. Priorities: ${topPriorities.join(", ")}.
-Task: Give a 1-2 sentence speech to **${stance.toUpperCase()}** the bill "${bill.title}".
-Bill Text Context: "${bill.text_content?.slice(0, 300) || bill.summary.slice(0, 300)}..."
+[RULES]
+1. Use PLAIN ENGLISH. No fancy jargon.
+2. USE COMMON SENSE. 
+3. Don't mention "Fiscal Hollows" or weird phrases.
+4. Do NOT repeat the bill title.
+5. Do NOT mention your ID.
 
-[INSTRUCTION]
-${stanceInstruction}
-- Stay in character.
-- Mention specific local groups (e.g. "my farmers", "shrimpers", "families").
-- Be passionate but parliamentary.
-- NO meta-commentary (e.g. "Here is the speech"). Start directly with the text.
-- Max 50 words.
-
-Dialogue:
+[OUTPUT]
+Write only the argument. Start directly.
 `.trim();
 }
 
@@ -425,7 +418,9 @@ Rules:
 1. Does this bill align with your party? (Dem: Social programs, Climate. GOP: Tax cuts, Border, Defense).
 2. Does it help your district priorities?
 3. Vote YES if it matches EITHER party OR district.
-4. Vote NO if it matches NEITHER.
+4. Rule: Vote YES if it helps EITHER Party OR District. Vote NO if it helps NEITHER.
+5. REALISM CHECK: Only count "District Priority" if the bill explicitly helps that sector. Do not force connections between unrelated topics.
+6. BE DECISIVE.
 
 Output: Just one word: YES or NO.
 `.trim();
@@ -441,7 +436,27 @@ Output: Just one word: YES or NO.
         // Add round index to seed to vary tone across rounds
         const speechPrompt = buildSpeechPrompt(s, currentBill, spObj.stance, r);
         const sp = await loadedEngine.chat.completions.create({ messages: [{ role: "user", content: speechPrompt }] });
-        spObj.text = sp.choices[0].message.content || "I yield my time.";
+
+        // POST-PROCESS CLEANUP
+        let raw = sp.choices[0].message.content || "";
+
+        // Basic cleanup
+        raw = raw.replace(/Here is the dialogue:|I cannot fulfill|M-\d+/gi, "");
+        raw = raw.replace(/"/g, "").trim();
+
+        // Fix duplications like "I rise... I rise..."
+        // We just take the first sincere sentence.
+        if (raw.indexOf(".") > -1) {
+          raw = raw.split(".")[0] + ".";
+        }
+
+        // Add prefix if missing
+        if (!raw.toLowerCase().startsWith("mr. speaker")) {
+          const prefix = spObj.stance === "support" ? "Mr. Speaker, I support this because" : "Mr. Speaker, I oppose this because";
+          raw = `${prefix} ${raw.charAt(0).toLowerCase() + raw.slice(1)}`;
+        }
+
+        spObj.text = raw.slice(0, 300);
 
       } else {
         // Fallback: Ideology driven (Lean > 0 is Dem usually YES for Dem bills, but it varies)
