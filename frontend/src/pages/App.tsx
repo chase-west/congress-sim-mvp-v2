@@ -73,8 +73,8 @@ const FormattedBillText = ({ text }: { text: string }) => {
 
 export default function App() {
   const [view, setView] = useState<"sim" | "about">("sim");
-  const [title, setTitle] = useState("Energy + Jobs Package");
-  const [summary, setSummary] = useState("A package combining clean energy credits with workforce training.");
+  const [title, setTitle] = useState("");
+  const [summary, setSummary] = useState("");
   const [textContent, setTextContent] = useState(""); 
   
   // Simulation Config
@@ -151,15 +151,15 @@ export default function App() {
          const bills = await loadBills();
          setBillInventory(bills);
          
-         // Auto-load the first bill so we have details immediately
-         if (bills.length > 0) {
+         // Auto-load removed per user request
+         /*if (bills.length > 0) {
             const b = bills[0];
             setTitle(b.title);
             setSummary(b.summary);
             // Ensure full text is loaded
             setTextContent(b.text_content || "");
             setVec(b.issue_vector);
-         }
+         }*/
     })();
     
     (async () => {
