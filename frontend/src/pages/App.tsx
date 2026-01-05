@@ -14,6 +14,7 @@ import { loadBills } from "../lib/synthetic_bills";
 
 // UI Components
 import { Layout } from "../components/ui/Layout";
+import { About } from "./About";
 
 // Icons
 import { ArrowRight } from "lucide-react";
@@ -71,6 +72,7 @@ const FormattedBillText = ({ text }: { text: string }) => {
 };
 
 export default function App() {
+  const [view, setView] = useState<"sim" | "about">("sim");
   const [title, setTitle] = useState("Energy + Jobs Package");
   const [summary, setSummary] = useState("A package combining clean energy credits with workforce training.");
   const [textContent, setTextContent] = useState(""); 
@@ -303,18 +305,29 @@ export default function App() {
       <div className="min-h-screen text-white font-sans overflow-x-hidden">
         
         {/* Navigation */}
-        <nav className="fixed top-0 w-full p-8 flex justify-between z-50 pointer-events-none mix-blend-difference">
-          <div className="flex flex-col">
-            <span className="text-sm font-bold tracking-[0.2em] uppercase">Congress</span>
+        <nav className="fixed top-0 left-0 w-full p-6 md:p-8 flex justify-between items-start z-50 bg-gradient-to-b from-black/90 to-transparent backdrop-blur-[1px]">
+          <div className="flex flex-col cursor-pointer group" onClick={() => setView("sim")}>
+            <span className="text-sm font-bold tracking-[0.2em] uppercase text-white group-hover:text-white/70 transition-colors">Congress</span>
             <span className="text-[10px] tracking-widest text-white/50">Simulation v2.0</span>
           </div>
-          <div className="text-[10px] tracking-widest text-white/50 uppercase text-right">
-             <span className="hidden md:inline">Legislative Intelligence System</span>
+          <div className="text-[10px] tracking-widest uppercase text-right flex gap-6 md:gap-12">
+             <button 
+                onClick={() => setView("sim")} 
+                className={`transition-colors pb-1 border-b ${view === 'sim' ? 'text-white border-white' : 'text-white/50 border-transparent hover:text-white hover:border-white/30'}`}
+             >
+                Simulation
+             </button>
+             <button 
+                onClick={() => setView("about")} 
+                className={`transition-colors pb-1 border-b ${view === 'about' ? 'text-white border-white' : 'text-white/50 border-transparent hover:text-white hover:border-white/30'}`}
+             >
+                Mission & Manual
+             </button>
           </div>
         </nav>
 
         {/* Main Grid */}
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 min-h-screen items-center px-6 md:px-12 lg:px-24 gap-12 lg:gap-24">
+        <div className={`relative z-10 grid grid-cols-1 lg:grid-cols-12 min-h-screen items-center px-6 md:px-12 lg:px-24 gap-12 lg:gap-24 ${view === 'sim' ? '' : 'hidden'}`}>
           
           {/* LEFT COLUMN: Controls */}
           <div className="col-span-1 lg:col-span-6 space-y-12 py-24">
@@ -664,6 +677,13 @@ export default function App() {
           </div>
 
         </div>
+        
+        {/* About Page */}
+        {view === 'about' && (
+           <div className="relative z-10 px-6 md:px-12 lg:px-24 min-h-screen">
+              <About />
+           </div>
+        )}
       </div>
     </Layout>
   );
