@@ -1,1 +1,1 @@
-wip
+simulate policy decisions with local agents.  
